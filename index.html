@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
+    />
+  </head>
+  <body>
+    <section class="hero is-primary is-bold">
+      <div class="hero-body">
+        <div class="container">
+          <h1 class="title">Registrar Clave con IP y Dispositivo</h1>
+        </div>
+      </div>
+    </section>
+    <form id="form" class="container m-4 pl-4" method="POST">
+      <div class="field">
+        <label class="label">Clave</label>
+        <div class="control">
+          <input
+            class="input"
+            type="text"
+            placeholder="Escribe una clave"
+            name="Clave"
+            required
+          />
+        </div>
+      </div>
+      <div class="field is-grouped">
+        <div class="control">
+          <button class="button is-primary" type="submit" id="submit-button">
+            Registrar Clave
+          </button>
+        </div>
+      </div>
+    </form>
+    <div
+      id="message"
+      style="
+        display: none;
+        margin-top: 20px;
+        font-weight: bold;
+        padding: 8px;
+        border-radius: 4px;
+      "
+    ></div>
+
+    <script>
+      document.getElementById("form").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const clave = formData.get("Clave");
+        const message = document.getElementById("message");
+
+        message.textContent = "Enviando clave...";
+        message.style.display = "block";
+        message.style.color = "black";
+        message.style.backgroundColor = "lightyellow";
+
+        try {
+          // Obtener la IP pública del dispositivo
+          const ipResponse = await fetch("https://api.ipify.org?format=json");
+          const ipData = await ipResponse.json();
+          const ip = ipData.ip;
+
+          // Obtener información del dispositivo
+          const userAgent = navigator.userAgent;
+
+          // Enviar los datos al Apps Script
+          const response = await fetch(
+            "https://script.google.com/macros/s/AKfycbyIp2RgvCKY4FNVYiwKOdAxfNcECRqv_pHd_mCfCx9iyKb2dE-jKvrvK-bVYzQ15M3g/exec",
+            {
+              method: "POST",
+              body: `Clave=${clave}&IP=${ip}&UserAgent=${encodeURIComponent(
+                userAgent
+              )}`,
+              headers: {
+                "Content-Type": "text/plain;charset=utf-8",
+              },
+            }
+          );
+
+          if (response.ok) {
+            message.textContent = "Clave, IP y dispositivo registrados correctamente.";
+            message.style.color = "green";
+            message.style.backgroundColor = "lightgreen";
+          } else {
+            throw new Error("Error al registrar los datos.");
+          }
+        } catch (error) {
+          console.error(error);
+          message.textContent = "Ocurrió un error al registrar los datos.";
+          message.style.color = "red";
+          message.style.backgroundColor = "lightcoral";
+        } finally {
+          this.reset();
+          setTimeout(() => {
+            message.style.display = "none";
+          }, 3000);
+        }
+      });
+    </script>
+  </body>
+</html>
